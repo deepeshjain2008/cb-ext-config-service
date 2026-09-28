@@ -31,6 +31,8 @@ import java.util.*;
 @Slf4j
 public class FormsConfigurationServiceImpl implements FormsConfigurationService {
 
+    private static final String FORM_ID = "formId";
+
     @Autowired
     private AccessTokenValidator accessTokenValidator;
 
@@ -453,8 +455,8 @@ public class FormsConfigurationServiceImpl implements FormsConfigurationService 
 
             Map<String, Object> requestData = (Map<String, Object>) request.get(Constants.Parameters.REQUEST);
             Long formId = null;
-            if (requestData.containsKey("formId") && requestData.get("formId") != null) {
-                formId = Long.valueOf(requestData.get("formId").toString());
+            if (requestData.containsKey(FORM_ID) && requestData.get(FORM_ID) != null) {
+                formId = Long.valueOf(requestData.get(FORM_ID).toString());
             } else if (requestData.containsKey("id") && requestData.get("id") != null) {
                 formId = Long.valueOf(requestData.get("id").toString());
             }
