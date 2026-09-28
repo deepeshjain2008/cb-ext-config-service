@@ -97,6 +97,35 @@ class KeyManagerTest {
         assertThrows(Exception.class, () -> KeyManager.loadPublicKey("invalid-key"));
     }
 
+    @Test
+    void loadPublicKey_shouldStripWindowsStyleLineEndings() throws Exception {
+        KeyPair keyPair = generateRsaKeyPair();
+        String encoded = Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded());
+        String pemWithCrlf = "-----BEGIN PUBLIC KEY-----\r\n" + encoded + "\r\n-----END PUBLIC KEY-----";
+
+        PublicKey result = KeyManager.loadPublicKey(pemWithCrlf);
+
+        assertEquals(keyPair.getPublic(), result);
+    }
+
+    @Test
+    void loadPublicKey_shouldLoadKeyWithoutPemHeaderOrFooter() throws Exception {
+        KeyPair keyPair = generateRsaKeyPair();
+        String rawEncoded = Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded());
+
+        PublicKey result = KeyManager.loadPublicKey(rawEncoded);
+
+        assertEquals(keyPair.getPublic(), result);
+    }
+
+    @Test
+    void loadPublicKey_shouldNotHangOnPathologicalDashInput() {
+        String adversarialInput = "-".repeat(50000) + "BEGIN PUBLIC KEY" + "-".repeat(50000);
+
+        assertTimeoutPreemptively(java.time.Duration.ofSeconds(2),
+                () -> assertThrows(Exception.class, () -> KeyManager.loadPublicKey(adversarialInput)));
+    }
+
     private KeyPair generateRsaKeyPair() throws Exception {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(2048);

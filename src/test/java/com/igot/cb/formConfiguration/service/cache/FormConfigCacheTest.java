@@ -133,6 +133,18 @@ class FormConfigCacheTest {
     }
 
     @Test
+    void scheduledRefresh_shouldDelegateToReloadAndPopulateSnapshot() {
+        FormConfigurationEntity e = entity(1L, "type1", "sub1", "portal1", "org1", "role1", 1.0);
+        when(repository.findAll(any(Sort.class))).thenReturn(List.of(e));
+
+        formConfigCache.scheduledRefresh();
+
+        assertTrue(formConfigCache.isLoaded());
+        String key = FormConfigCache.cacheKey("type1", "sub1", "portal1", "org1", "role1", 1.0);
+        assertEquals("name-1", formConfigCache.get(key).result().get("name"));
+    }
+
+    @Test
     void init_shouldTriggerInitialReload() {
         when(repository.findAll(any(Sort.class))).thenReturn(List.of());
 
