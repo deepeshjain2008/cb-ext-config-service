@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * In-JVM snapshot of the whole {@code form_configuration} table.
@@ -33,7 +34,7 @@ public class FormConfigCache {
     private final FormConfigurationRepository repository;
     private final ObjectMapper objectMapper;
 
-    private volatile Map<String, CachedFormConfig> snapshot = Collections.emptyMap();
+    private final AtomicReference<Map<String, CachedFormConfig>> snapshot = new AtomicReference<>(Collections.emptyMap());
     private volatile boolean loaded = false;
 
     public FormConfigCache(FormConfigurationRepository repository, ObjectMapper objectMapper) {
@@ -78,13 +79,13 @@ public class FormConfigCache {
                     log.warn("Duplicate form_configuration rows resolve to key {}; highest id wins.", key);
                 }
             }
-            snapshot = Collections.unmodifiableMap(next);
+            snapshot.set(Collections.unmodifiableMap(next));
             loaded = true;
             log.info("Form config cache loaded: {} keys from {} rows ({} skipped for missing criteria rootOrg/role).",
                     next.size(), rows.size(), skipped);
         } catch (Exception e) {
             log.error("Failed to reload form config cache; retaining previous snapshot of {} entries.",
-                    snapshot.size(), e);
+                    snapshot.get().size(), e);
         }
     }
 
@@ -97,7 +98,7 @@ public class FormConfigCache {
     }
 
     public CachedFormConfig get(String key) {
-        return snapshot.get(key);
+        return snapshot.get().get(key);
     }
 
     /**

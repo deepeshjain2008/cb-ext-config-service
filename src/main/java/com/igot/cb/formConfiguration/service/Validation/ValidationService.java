@@ -11,7 +11,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.jclouds.rest.annotations.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -25,8 +24,11 @@ public class ValidationService {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(ValidationService.class);
 
-    @Autowired
-    private FormConfigurationRepository formConfigurationRepository;
+    private final FormConfigurationRepository formConfigurationRepository;
+
+    public ValidationService(FormConfigurationRepository formConfigurationRepository) {
+        this.formConfigurationRepository = formConfigurationRepository;
+    }
 
     public String validateForm(Map<String,Object> formRequest, String operation) {
         String validationMsg = Constants.SUCCESSFUL;

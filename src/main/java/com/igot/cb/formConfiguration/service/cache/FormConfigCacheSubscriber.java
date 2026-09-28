@@ -9,6 +9,8 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPubSub;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 /**
  * Listens for form configuration invalidation messages and refreshes the in-JVM
  * {@link FormConfigCache}. This is what keeps every pod consistent after a write
@@ -24,7 +26,7 @@ public class FormConfigCacheSubscriber {
     private final FormConfigCache formConfigCache;
 
     private volatile boolean running = true;
-    private volatile JedisPubSub subscriber;
+    private final AtomicReference<JedisPubSub> subscriber = new AtomicReference<>();
     private Thread listenerThread;
 
     public FormConfigCacheSubscriber(JedisPool jedisPool, FormConfigCache formConfigCache) {
@@ -40,17 +42,17 @@ public class FormConfigCacheSubscriber {
     }
 
     private void listen() {
-        subscriber = new JedisPubSub() {
+        subscriber.set(new JedisPubSub() {
             @Override
             public void onMessage(String channel, String message) {
                 log.info("Form config invalidation received on channel {}: {}", channel, message);
                 formConfigCache.reload();
             }
-        };
+        });
         while (running) {
             try (Jedis jedis = jedisPool.getResource()) {
                 // Blocks until unsubscribed or the connection drops.
-                jedis.subscribe(subscriber, Constants.FORM_CONFIG_INVALIDATE_CHANNEL);
+                jedis.subscribe(subscriber.get(), Constants.FORM_CONFIG_INVALIDATE_CHANNEL);
             } catch (Exception e) {
                 if (running) {
                     log.error("Form config invalidation subscriber disconnected, retrying in {}ms",
@@ -72,8 +74,9 @@ public class FormConfigCacheSubscriber {
     public void stop() {
         running = false;
         try {
-            if (subscriber != null && subscriber.isSubscribed()) {
-                subscriber.unsubscribe();
+            JedisPubSub current = subscriber.get();
+            if (current != null && current.isSubscribed()) {
+                current.unsubscribe();
             }
         } catch (Exception e) {
             log.warn("Error while unsubscribing form config invalidation listener: {}", e.getMessage());
