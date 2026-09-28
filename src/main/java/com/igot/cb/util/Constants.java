@@ -1,7 +1,5 @@
 package com.igot.cb.util;
 
-import java.util.HashMap;
-
 /**
  * @author Mahesh RV
  */
