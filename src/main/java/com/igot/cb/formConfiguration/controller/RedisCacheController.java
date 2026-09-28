@@ -2,7 +2,6 @@ package com.igot.cb.formConfiguration.controller;
 
 import com.igot.cb.formConfiguration.service.cache.CacheService;
 import com.igot.cb.util.ApiResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,8 +9,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class RedisCacheController {
 
-    @Autowired
-    CacheService redisCacheService;
+    private final CacheService redisCacheService;
+
+    public RedisCacheController(CacheService redisCacheService) {
+        this.redisCacheService = redisCacheService;
+    }
 
 
     @DeleteMapping("/redis")

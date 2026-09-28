@@ -3,7 +3,6 @@ package com.igot.cb.formConfiguration.controller;
 import com.igot.cb.formConfiguration.service.FormsConfigurationService;
 import com.igot.cb.util.ApiResponse;
 import com.igot.cb.util.Constants;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,8 +13,11 @@ import java.util.Map;
 @RequestMapping("/formsConfig")
 public class ConfigurationController {
 
-  @Autowired
-  private FormsConfigurationService formsConfigurationService;
+  private final FormsConfigurationService formsConfigurationService;
+
+  public ConfigurationController(FormsConfigurationService formsConfigurationService) {
+    this.formsConfigurationService = formsConfigurationService;
+  }
 
   @PostMapping("/create")
   public ResponseEntity<ApiResponse> createFormConfig(@RequestBody Map<String, Object> request,@RequestHeader(Constants.Parameters.X_AUTH_TOKEN) String token) {
