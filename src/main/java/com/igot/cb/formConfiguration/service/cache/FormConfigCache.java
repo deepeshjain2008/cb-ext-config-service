@@ -55,6 +55,7 @@ public class FormConfigCache {
     }
 
     @Scheduled(fixedDelayString = "${formconfig.cache.refreshIntervalMs:300000}")
+    @Transactional(readOnly = true)
     public void scheduledRefresh() {
         reload();
     }

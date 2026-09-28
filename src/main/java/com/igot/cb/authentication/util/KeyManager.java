@@ -24,8 +24,13 @@ import java.util.stream.Stream;
 @Component
 @Slf4j
 public class KeyManager {
+  public static final String EMPTY_STRING = "";
   private final PropertiesCache propertiesCache;
   private final Map<String, KeyData> keyMap = new HashMap<>();
+
+  private static final String PUBLIC_KEY_HEADER = "(-+BEGIN PUBLIC KEY-+)";
+  private static final String PUBLIC_KEY_FOOTER = "(-+END PUBLIC KEY-+)";
+  private static final String NEW_LINE_REGEX = "[\\r\\n]+";
 
   public KeyManager(PropertiesCache propertiesCache) {
     this.propertiesCache = propertiesCache;
@@ -69,9 +74,9 @@ public class KeyManager {
    */
   public static PublicKey loadPublicKey(String key) throws Exception {
     // Remove header and footer from the key string
-    String cleanedKey = key.replaceAll("(-++BEGIN PUBLIC KEY-++)", "")
-            .replaceAll("(-++END PUBLIC KEY-++)", "")
-            .replaceAll("[\\r\\n]+", "");
+    String cleanedKey = key.replaceAll(PUBLIC_KEY_HEADER, EMPTY_STRING)
+            .replaceAll(PUBLIC_KEY_FOOTER, EMPTY_STRING)
+            .replaceAll(NEW_LINE_REGEX, EMPTY_STRING);
     // Decode Base64 content
     byte[] keyBytes = Base64.getDecoder().decode(cleanedKey);
     // Generate PublicKey object
