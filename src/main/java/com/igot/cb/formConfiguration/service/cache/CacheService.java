@@ -4,7 +4,6 @@ import com.igot.cb.util.ApiResponse;
 import com.igot.cb.util.Constants;
 import com.igot.cb.util.ProjectUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
@@ -18,8 +17,11 @@ import java.util.List;
 @Slf4j
 public class CacheService {
 
-    @Autowired
-    private JedisPool jedisPool;
+    private final JedisPool jedisPool;
+
+    public CacheService(JedisPool jedisPool) {
+        this.jedisPool = jedisPool;
+    }
 
     /**
      * Publishes a form configuration invalidation message so that every pod

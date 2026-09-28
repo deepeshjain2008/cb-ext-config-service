@@ -16,7 +16,6 @@ import com.igot.cb.util.Constants;
 import com.igot.cb.util.ProjectUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -33,23 +32,31 @@ public class FormsConfigurationServiceImpl implements FormsConfigurationService 
 
     private static final String FORM_ID = "formId";
 
-    @Autowired
-    private AccessTokenValidator accessTokenValidator;
+    private final AccessTokenValidator accessTokenValidator;
 
-    @Autowired
-    private FormConfigurationRepository formConfigurationRepository;
+    private final FormConfigurationRepository formConfigurationRepository;
 
-    @Autowired
-    ValidationService validationService;
+    private final ValidationService validationService;
 
-    @Autowired
-    private CacheService cacheService;
+    private final CacheService cacheService;
 
-    @Autowired
-    private FormConfigCache formConfigCache;
+    private final FormConfigCache formConfigCache;
 
-    @Autowired
-    ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
+
+    public FormsConfigurationServiceImpl(AccessTokenValidator accessTokenValidator,
+                                          FormConfigurationRepository formConfigurationRepository,
+                                          ValidationService validationService,
+                                          CacheService cacheService,
+                                          FormConfigCache formConfigCache,
+                                          ObjectMapper objectMapper) {
+        this.accessTokenValidator = accessTokenValidator;
+        this.formConfigurationRepository = formConfigurationRepository;
+        this.validationService = validationService;
+        this.cacheService = cacheService;
+        this.formConfigCache = formConfigCache;
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public ApiResponse createFormConfig(Map<String, Object> request, String token) {
