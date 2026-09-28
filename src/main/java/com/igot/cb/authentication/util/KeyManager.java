@@ -69,8 +69,8 @@ public class KeyManager {
    */
   public static PublicKey loadPublicKey(String key) throws Exception {
     // Remove header and footer from the key string
-    String cleanedKey = key.replaceAll("(-+BEGIN PUBLIC KEY-+)", "")
-            .replaceAll("(-+END PUBLIC KEY-+)", "")
+    String cleanedKey = key.replaceAll("(-++BEGIN PUBLIC KEY-++)", "")
+            .replaceAll("(-++END PUBLIC KEY-++)", "")
             .replaceAll("[\\r\\n]+", "");
     // Decode Base64 content
     byte[] keyBytes = Base64.getDecoder().decode(cleanedKey);
