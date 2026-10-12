@@ -8,7 +8,6 @@ import com.igot.cb.util.PropertiesCache;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -34,14 +33,17 @@ public class OrgReadServiceImpl implements OrgReadService {
 
     private static final String CACHE_KEY_PREFIX = "org.ministryOrStateType.";
 
-    @Autowired
-    private RestTemplate restTemplate;
+    private final RestTemplate restTemplate;
 
-    @Autowired
-    private CacheService cacheService;
+    private final CacheService cacheService;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
+
+    public OrgReadServiceImpl(RestTemplate restTemplate, CacheService cacheService, ObjectMapper objectMapper) {
+        this.restTemplate = restTemplate;
+        this.cacheService = cacheService;
+        this.objectMapper = objectMapper;
+    }
 
     private static PropertiesCache cache = PropertiesCache.getInstance();
     private static final String orgServiceEndpoint = cache.getProperty(Constants.LMS_SER_HOST)+Constants.ORG_READ_BASE_URL;
@@ -105,7 +107,8 @@ public class OrgReadServiceImpl implements OrgReadService {
             return ministryOrStateType.toLowerCase(Locale.ROOT);
         }
 
-        if (Constants.MINISTRY.equalsIgnoreCase(sbOrgType) || Constants.STATE.equalsIgnoreCase(sbOrgType)) {
+        if (sbOrgType != null
+                && (Constants.MINISTRY.equalsIgnoreCase(sbOrgType) || Constants.STATE.equalsIgnoreCase(sbOrgType))) {
             return sbOrgType.toLowerCase(Locale.ROOT);
         }
 

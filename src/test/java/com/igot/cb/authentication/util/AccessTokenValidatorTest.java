@@ -1,12 +1,22 @@
 package com.igot.cb.authentication.util;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.igot.cb.authentication.model.KeyData;
 import com.igot.cb.authentication.model.UserDetails;
 import com.igot.cb.util.Constants;
+import com.igot.cb.util.PropertiesCache;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
+import java.security.Signature;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +31,9 @@ class AccessTokenValidatorTest {
 
     @InjectMocks
     private AccessTokenValidator validator;
+
+    @Mock
+    private KeyManager keyManager;
 
     @Test
     void verifyUserToken_success_shouldReturnUserDetails() {
@@ -174,6 +187,109 @@ class AccessTokenValidatorTest {
         boolean result = validator.checkIss("wrong-issuer");
 
         assertFalse(result);
+    }
+
+    private String realmUrl() {
+        PropertiesCache cache = PropertiesCache.getInstance();
+        return cache.getProperty(Constants.SSO_URL) + "realms/" + cache.getProperty(Constants.SSO_REALM);
+    }
+
+    private String urlSafeNoPad(byte[] data) {
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(data);
+    }
+
+    private String buildToken(KeyPair keyPair, String keyId, Map<String, Object> headerData, Map<String, Object> bodyData) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        String header = urlSafeNoPad(mapper.writeValueAsBytes(headerData));
+        String body = urlSafeNoPad(mapper.writeValueAsBytes(bodyData));
+        String payload = header + Constants.DOT_SEPARATOR + body;
+
+        Signature signature = Signature.getInstance(Constants.SHA_256_WITH_RSA);
+        signature.initSign((PrivateKey) keyPair.getPrivate());
+        signature.update(payload.getBytes(StandardCharsets.US_ASCII));
+        String sig = urlSafeNoPad(signature.sign());
+
+        return header + "." + body + "." + sig;
+    }
+
+    @Test
+    void verifyUserToken_realCryptoRoundTrip_returnsUserDetails() throws Exception {
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+        generator.initialize(2048);
+        KeyPair keyPair = generator.generateKeyPair();
+
+        when(keyManager.getPublicKey("test-kid")).thenReturn(new KeyData("test-kid", keyPair.getPublic()));
+
+        String token = buildToken(keyPair,
+                "test-kid",
+                Map.of("kid", "test-kid"),
+                Map.of("sub", "user:123", "exp", Integer.MAX_VALUE, "iss", realmUrl(),
+                        "org", "org1", "user_roles", List.of("PUBLIC")));
+
+        UserDetails result = validator.verifyUserToken(token);
+
+        assertNotNull(result);
+        assertEquals("123", result.getUserId());
+        assertEquals("org1", result.getOrg());
+        assertEquals(List.of("PUBLIC"), result.getUserRoles());
+    }
+
+    @Test
+    void validateToken_realCryptoRoundTrip_expiredToken_returnsEmptyMap() throws Exception {
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+        generator.initialize(2048);
+        KeyPair keyPair = generator.generateKeyPair();
+
+        when(keyManager.getPublicKey("test-kid")).thenReturn(new KeyData("test-kid", keyPair.getPublic()));
+
+        String token = buildToken(keyPair,
+                "test-kid",
+                Map.of("kid", "test-kid"),
+                Map.of("sub", "user:123", "exp", 1, "iss", realmUrl()));
+
+        Map<String, Object> result = validator.validateToken(token);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void validateToken_invalidSignature_returnsEmptyMap() throws Exception {
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+        generator.initialize(2048);
+        KeyPair wrongKeyPair = generator.generateKeyPair();
+        KeyPair signingKeyPair = generator.generateKeyPair();
+
+        when(keyManager.getPublicKey("test-kid")).thenReturn(new KeyData("test-kid", wrongKeyPair.getPublic()));
+
+        String token = buildToken(signingKeyPair,
+                "test-kid",
+                Map.of("kid", "test-kid"),
+                Map.of("sub", "user:123", "exp", Integer.MAX_VALUE, "iss", realmUrl()));
+
+        Map<String, Object> result = validator.validateToken(token);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void verifyUserToken_realCryptoRoundTrip_mismatchedIssuer_returnsUserDetailsWithNullUserId() throws Exception {
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+        generator.initialize(2048);
+        KeyPair keyPair = generator.generateKeyPair();
+
+        when(keyManager.getPublicKey("test-kid")).thenReturn(new KeyData("test-kid", keyPair.getPublic()));
+
+        String token = buildToken(keyPair,
+                "test-kid",
+                Map.of("kid", "test-kid"),
+                Map.of("sub", "user:123", "exp", Integer.MAX_VALUE, "iss", "unexpected-issuer"));
+
+        UserDetails result = validator.verifyUserToken(token);
+
+        assertNotNull(result);
+        assertNull(result.getUserId());
     }
 
 }

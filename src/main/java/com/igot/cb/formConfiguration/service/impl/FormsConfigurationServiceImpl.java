@@ -19,7 +19,6 @@ import com.igot.cb.util.ProjectUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -34,29 +33,39 @@ import java.util.*;
 @Slf4j
 public class FormsConfigurationServiceImpl implements FormsConfigurationService {
 
-    @Autowired
-    private AccessTokenValidator accessTokenValidator;
+    private final AccessTokenValidator accessTokenValidator;
 
-    @Autowired
-    private FormConfigurationRepository formConfigurationRepository;
+    private final FormConfigurationRepository formConfigurationRepository;
 
-    @Autowired
-    ValidationService validationService;
+    private final ValidationService validationService;
 
-    @Autowired
-    ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
-    @Autowired
-    private FormConfigRuleEngine formConfigRuleEngine;
+    private final FormConfigRuleEngine formConfigRuleEngine;
 
-    @Autowired
-    private OrgReadService orgReadService;
+    private final OrgReadService orgReadService;
 
-    @Autowired
-    private UserDesignationService userDesignationService;
+    private final UserDesignationService userDesignationService;
 
-    @Autowired
-    private CacheService cacheService;
+    private final CacheService cacheService;
+
+    public FormsConfigurationServiceImpl(AccessTokenValidator accessTokenValidator,
+                                          FormConfigurationRepository formConfigurationRepository,
+                                          ValidationService validationService,
+                                          ObjectMapper objectMapper,
+                                          FormConfigRuleEngine formConfigRuleEngine,
+                                          OrgReadService orgReadService,
+                                          UserDesignationService userDesignationService,
+                                          CacheService cacheService) {
+        this.accessTokenValidator = accessTokenValidator;
+        this.formConfigurationRepository = formConfigurationRepository;
+        this.validationService = validationService;
+        this.objectMapper = objectMapper;
+        this.formConfigRuleEngine = formConfigRuleEngine;
+        this.orgReadService = orgReadService;
+        this.userDesignationService = userDesignationService;
+        this.cacheService = cacheService;
+    }
 
     @Override
     public ApiResponse readFormConfig(Map<String, Object> formConfigData, String authTokenOrUserId,String userOrg,List<String> userRoles,boolean isAdmin) {

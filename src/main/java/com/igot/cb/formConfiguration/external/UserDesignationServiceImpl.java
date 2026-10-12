@@ -7,7 +7,6 @@ import com.igot.cb.util.PropertiesCache;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -26,8 +25,11 @@ import java.util.List;
 @Slf4j
 public class UserDesignationServiceImpl implements UserDesignationService {
 
-    @Autowired
-    private RestTemplate restTemplate;
+    private final RestTemplate restTemplate;
+
+    public UserDesignationServiceImpl(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     private static PropertiesCache cache = PropertiesCache.getInstance();
     private static final String userReadEndpoint = cache.getProperty(Constants.LMS_SER_HOST)+Constants.USER_READ_BASE_URL;

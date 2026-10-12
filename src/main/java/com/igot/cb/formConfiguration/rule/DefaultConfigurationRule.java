@@ -4,7 +4,6 @@ import com.igot.cb.formConfiguration.entity.FormConfigurationEntity;
 import com.igot.cb.formConfiguration.repository.FormConfigurationRepository;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -24,8 +23,11 @@ public class DefaultConfigurationRule implements FormConfigLookupRule {
     private static final String RULE_ID = "roleRootOrg";
     private static final String WILDCARD_ROOT_ORG = "*";
 
-    @Autowired
-    private FormConfigurationRepository repository;
+    private final FormConfigurationRepository repository;
+
+    public DefaultConfigurationRule(FormConfigurationRepository repository) {
+        this.repository = repository;
+    }
 
     @Override
     public String ruleName() {

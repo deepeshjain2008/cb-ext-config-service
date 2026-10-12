@@ -2,7 +2,6 @@ package com.igot.cb.formConfiguration.rule;
 
 import com.igot.cb.formConfiguration.entity.FormConfigurationEntity;
 import com.igot.cb.formConfiguration.repository.FormConfigurationRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -19,8 +18,11 @@ public class NoCriteriaConfigurationRule implements FormConfigLookupRule {
 
     private static final String RULE_ID = "noCriteria";
 
-    @Autowired
-    private FormConfigurationRepository repository;
+    private final FormConfigurationRepository repository;
+
+    public NoCriteriaConfigurationRule(FormConfigurationRepository repository) {
+        this.repository = repository;
+    }
 
     @Override
     public String ruleName() {

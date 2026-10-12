@@ -4,7 +4,6 @@ import com.igot.cb.formConfiguration.entity.FormConfigurationEntity;
 import com.igot.cb.formConfiguration.repository.FormConfigurationRepository;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -25,8 +24,11 @@ public class DesignationConfigurationRule implements FormConfigLookupRule {
 
     private static final String RULE_ID = "designationMinistry";
 
-    @Autowired
-    private FormConfigurationRepository repository;
+    private final FormConfigurationRepository repository;
+
+    public DesignationConfigurationRule(FormConfigurationRepository repository) {
+        this.repository = repository;
+    }
 
     @Override
     public String ruleName() {
